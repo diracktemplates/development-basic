@@ -1,2 +1,3 @@
 # development-basic
-Basic development package
+
+> Template for a basic development repository
