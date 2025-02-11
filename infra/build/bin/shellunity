@@ -1,0 +1,165 @@
+#!/bin/bash
+#
+# shellunity (Shell Script)
+# 
+# Objetivo: Framework de testes unitários para Shell Script.
+# 
+# Site: https://dirack.github.io
+# 
+# Versão 1.0
+# 
+# Programador: Rodolfo A C Neves (Dirack) 30/10/2020
+# 
+# Email: rodolfo_profissional@hotmail.com
+# 
+# Licença: GPL-3.0 <https://www.gnu.org/licenses/gpl-3.0.txt>.
+
+trap RESULT_UNITY exit
+
+NUMBER_OF_TESTS_UNITY="0"
+NUMBER_OF_FAILURES_UNITY="0"
+NUMBER_OF_IGNORED_UNITY="0"
+FINISHED_ALL_TESTS_UNITY="0"
+TEST_IGNORE_UNITY="0"
+
+RESULT_UNITY(){
+	
+	FINISHED_ALL_TESTS_UNITY="1"
+	echo -e "\n-----------------------"
+	echo "$NUMBER_OF_TESTS_UNITY Tests $NUMBER_OF_FAILURES_UNITY Failures $NUMBER_OF_IGNORED_UNITY Ignored"
+	[ "$NUMBER_OF_FAILURES_UNITY" -eq "0" ] && TEST_UNITY 0 && exit 0
+	TEST_UNITY 1 && exit 1
+}
+
+TEST_UNITY(){
+
+	NUMBER_OF_TESTS_UNITY=$((NUMBER_OF_TESTS_UNITY+1))
+	[ "$TEST_IGNORE_UNITY" == "1" ] && {
+		NUMBER_OF_IGNORED_UNITY=$((NUMBER_OF_IGNORED_UNITY+1))
+		echo -e "$0:$2:$3:\033[43mIGNORED\033[m"
+		return
+	}
+
+	if [ "$FINISHED_ALL_TESTS_UNITY" == "0" ]
+	then
+		echo -n "$0:$2:$3:"
+	fi
+
+	if [ "$1" == "0" ] 
+	then
+		echo -e "\033[42mPASS\033[m"
+	else
+		NUMBER_OF_FAILURES_UNITY=$((NUMBER_OF_FAILURES_UNITY+1))
+		echo -e "\033[41mFAIL\033[m"
+	fi
+	
+}
+
+TEST_IGNORE(){
+	if [ "$1" == "on" ]
+	then
+		TEST_IGNORE_UNITY="1"
+	elif [ "$1" == "off" ]
+	then
+		TEST_IGNORE_UNITY="0"
+	fi
+}
+
+TEST_MESSAGE(){
+
+	echo "$0:$BASH_LINENO:INFO: $1"
+}
+
+TEST_FAIL(){
+	TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_FAIL_MESSAGE(){
+	
+	echo "$0:$BASH_LINENO:FAIL: $1"
+	TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_PASS(){
+
+	TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_PASS_MESSAGE(){
+
+	echo "$0:$BASH_LINENO:PASS: $1"
+	TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME"
+
+}
+
+
+TEST_ASSERT_EQUAL(){
+
+	CONDITION=$(echo "$1==$2" | bc -l)
+       	[ "$CONDITION" == "1" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_ASSERT_NOT_EQUAL(){
+
+	CONDITION=$(echo "$1!=$2" | bc -l)
+        [ "$CONDITION" == "1" ]	&& TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_ASSERT_TRUE(){
+
+	CONDITION=$(echo "$1" | bc -l)
+	[ "$CONDITION" == "1" ]	&& TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+
+}
+
+TEST_ASSERT_FALSE(){
+
+	CONDITION=$(echo "$1" | bc -l)
+	[ "$CONDITION" == "0" ]	&& TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_ASSERT_EQUAL_STRING(){
+
+	[ "$1" == "$2" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+
+}
+
+TEST_FILE_FIND(){
+	[ -f "$1" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_DIR_FIND(){
+	[ -d "$1" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_FILE_X(){
+	[ -x "$1" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_FILE_W(){
+	[ -w "$1" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_FILE_R(){
+	[ -r "$1" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_ISATTY(){
+	[ -t "$1" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_FILE_NEWER(){
+	[ "$1" -nt "$2" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_FILE_OLDER(){
+	[ "$1" -ot "$2" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_FILE_EQUAL(){
+	[ "$1" -ef "$2" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
+
+TEST_FILE_EMPTY(){
+	[ ! -s "$1" ] && TEST_UNITY 0 "$BASH_LINENO" "$FUNCNAME" || TEST_UNITY 1 "$BASH_LINENO" "$FUNCNAME"
+}
